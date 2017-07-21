@@ -1,4 +1,4 @@
-package com.happy.gene.pdf.generate.elements.data;
+package com.happy.gene.pdf.generate.datamodel;
 
 /**
  * Created by zhaolisong on 27/06/2017.

@@ -1,4 +1,7 @@
-package com.happy.gene.pdf.generate;
+package com.happy.gene.pdf.generate.elements;
+
+import com.happy.gene.pdf.generate.ICloneable;
+import com.happy.gene.pdf.generate.IGridCell;
 
 /**
  * The origin point is at the left-bottom corner
@@ -7,7 +10,7 @@ package com.happy.gene.pdf.generate;
  *
  * Created by zhaolisong on 27/06/2017.
  */
-public class Area implements IGridCell, ICloneable {
+public class AreaDef implements IGridCell, ICloneable {
 
     private float x = 0, y = 0, w = 0, h = 0;
     private float paddingL=0,paddingT=0,paddingR=0,paddingB=0;
@@ -209,7 +212,7 @@ public class Area implements IGridCell, ICloneable {
     //====================================
     public void clone(Object dest) {
         if (null==dest) { return; }
-        Area area = (Area) dest;
+        AreaDef area = (AreaDef) dest;
 
         // self
         area.x = this.x;
@@ -239,9 +242,9 @@ public class Area implements IGridCell, ICloneable {
         area.bottomY = this.bottomY;
         area.lastY = this.lastY;
     }
-    public ICloneable createBlank() { return new Area(); }
+    public ICloneable createBlank() { return new AreaDef(); }
     public static Object newInstance() {
-        return new Area();
+        return new AreaDef();
     }
 
 
