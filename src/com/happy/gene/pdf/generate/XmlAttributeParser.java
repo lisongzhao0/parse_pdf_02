@@ -1,7 +1,7 @@
 package com.happy.gene.pdf.generate;
 
-import com.happy.gene.pdf.generate.attributes.*;
-import com.happy.gene.pdf.generate.attributes.Dimension;
+import com.happy.gene.pdf.generate.model.attributes.*;
+import com.happy.gene.pdf.generate.model.attributes.Dimension;
 import com.happy.gene.util.NumberUtil;
 import com.happy.gene.util.StringUtil;
 import org.dom4j.Element;
@@ -95,24 +95,17 @@ public class XmlAttributeParser {
         PageOption pageOption = PageOption.newInstance();
         if (null==ele) { return pageOption; }
 
-        Boolean pageNumberStart   = false;
-        Integer pageNumberStartAt = 1;
-        boolean useNewPage        = false;
-        boolean recordPageNumber  = false;
-        String  inWhichCatalog    = ele.attributeValue("catalog");
-        Integer fixPageNumber     = null;
-        String pageNumber        = ele.attributeValue("catalog");
+        String inWhichCatalog   = ele.attributeValue("catalog");
+        String generateNewPage  = ele.attributeValue("new-page");
+        String startCountPage   = ele.attributeValue("start-count-page");
+        String startCountPageAt = ele.attributeValue("start-count-page-at");
+        String fixPageAt = ele.attributeValue("fix-page-at");
 
-
-        String catalog = ele.attributeValue("catalog");
-        String top     = ele.attributeValue("page-top");
-        String right   = ele.attributeValue("margins-right");
-        String bottom  = ele.attributeValue("margins-bottom");
-
-        pageOption.inWhichCatalog(numberUtil.isFloat(top) ? numberUtil.parseFloat(top)  : pageOption.top())
-                .left(numberUtil.isFloat(left) ? numberUtil.parseFloat(left) : pageOption.left())
-                .right(numberUtil.isFloat(right) ? numberUtil.parseFloat(right) : pageOption.right())
-                .bottom(numberUtil.isFloat(bottom) ? numberUtil.parseFloat(bottom) : pageOption.bottom());
+        pageOption.inWhichCatalog(inWhichCatalog)
+                .generateNewPage(Boolean.parseBoolean(generateNewPage))
+                .startCountPage(Boolean.parseBoolean(startCountPage))
+                .startCountPageAt(numberUtil.isInteger(startCountPageAt) ? numberUtil.parseInteger(startCountPageAt) : null)
+                .fixPageAt(numberUtil.isInteger(fixPageAt) ? numberUtil.parseInteger(fixPageAt) : null);
 
         return pageOption;
 
