@@ -13,7 +13,6 @@ import com.happy.gene.pdf.generate.ICloneable;
  *
  * Created by zhaolisong on 21/07/2017.
  */
-
 public class Position implements ICloneable {
 
     public static Position newInstance() { return new Position(); }

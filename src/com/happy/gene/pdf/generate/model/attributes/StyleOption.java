@@ -19,6 +19,8 @@ public class StyleOption implements ICloneable {
     private float   opacity  = 1.0f;
     private float   lineWidth= 0.0f;
     private boolean visible  = true;
+    private Float dashOn  = null;
+    private Float dashOff = null;
 
     public StyleOption() {}
 
@@ -28,6 +30,9 @@ public class StyleOption implements ICloneable {
     public float opacity() { return opacity; }
     public float lineWidth() { return lineWidth; }
     public boolean visible() { return visible; }
+    public Float dashOn() { return dashOn; }
+    public Float dashOff() { return dashOff; }
+
 
     public StyleOption foreground(String color) {
         foreground = color;
@@ -51,6 +56,14 @@ public class StyleOption implements ICloneable {
     }
     public StyleOption visible(boolean visible) { this.visible = visible; return this; }
     public StyleOption visible(String visible) { this.visible = Boolean.parseBoolean(visible); return this; }
+    public StyleOption dashOn(Float dashOn) {
+        this.dashOn = dashOn;
+        return this;
+    }
+    public StyleOption dashOff(Float dashOff) {
+        this.dashOff = dashOff;
+        return this;
+    }
 
     public Color parseColor(String color, Color defaultColor) {
         if (null==color || "".equalsIgnoreCase(color.trim())) {
@@ -89,6 +102,9 @@ public class StyleOption implements ICloneable {
         ((StyleOption) dest).fill       = fill;
         ((StyleOption) dest).opacity    = opacity;
         ((StyleOption) dest).lineWidth  = lineWidth;
+        ((StyleOption) dest).visible    = visible;
+        ((StyleOption) dest).dashOn     = dashOn;
+        ((StyleOption) dest).dashOff    = dashOff;
 
         return (ICloneable) dest;
     }

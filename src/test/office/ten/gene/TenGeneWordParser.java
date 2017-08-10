@@ -1,16 +1,15 @@
 package test.office.ten.gene;
 
+import test.office.utility.DateUtil;
 import org.apache.poi.xwpf.usermodel.*;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.tree.DefaultDocument;
 import org.dom4j.tree.DefaultElement;
-import test.office.word.IWordParagraphProcessor;
 import test.office.word.IWordParser;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 
@@ -20,7 +19,7 @@ import java.util.*;
 public class TenGeneWordParser implements IWordParser {
 
     public static TenGeneWordParser newInstance() { return new TenGeneWordParser(); }
-    public static TenGeneWordParser newInstance(String documentPath) { return new TenGeneWordParser(documentPath); }
+    public static TenGeneWordParser newInstance(String documentPath, String temporaryPath) { return new TenGeneWordParser(documentPath, temporaryPath); }
 
     public static final int USER_INFO               = 0x01;
     public static final int DIAGNOSES_FAMILY_HIS    = 0x02;
@@ -33,15 +32,19 @@ public class TenGeneWordParser implements IWordParser {
     public static final int REFERENCES              = 0x100;
 
     private String       documentPath;
+    private String       temporaryPath;
     private InputStream  is;
     private XWPFDocument wordDoc;
-    private IWordParagraphProcessor defaultParagraphProcessor = new DefaultWordParagraphProcessor();
+
+    private DefaultParagraphProcessor defaultParagraphProcessor = new DefaultParagraphProcessor();
 
     public TenGeneWordParser() {}
-    public TenGeneWordParser(String documentPath) { setDocumentPath(documentPath); }
+    public TenGeneWordParser(String documentPath, String temporaryPath) { setDocumentPath(documentPath); setTemporaryPath(temporaryPath); }
 
     @Override public String getDocumentPath() { return this.documentPath; }
     @Override public void setDocumentPath(String documentPath) { this.documentPath = documentPath; }
+    @Override public String getTemporaryPath() { return temporaryPath; }
+    @Override public void setTemporaryPath(String temporaryPath) { this.temporaryPath = temporaryPath; }
     @Override public void openDocument() throws Exception {
         this.is      = new FileInputStream(documentPath);
         this.wordDoc = new XWPFDocument(is);
@@ -73,7 +76,7 @@ public class TenGeneWordParser implements IWordParser {
         else if (null!=paragraph.getStyle() && paragraph.getText().contains("疾病与基因简介")) {
             return CANCER_GENE_SUMMARY;
         }
-        else if (null!=paragraph.getStyle() && paragraph.getText().contains("FDA") && paragraph.getText().contains("NCCN指导意见")) {
+        else if (paragraph.getText().contains("FDA") && paragraph.getText().contains("NCCN指导意见")) {
             return FDA_NCCN_SUMMARY;
         }
         else if (paragraph.getText().contains("参考文献")) {
@@ -105,9 +108,14 @@ public class TenGeneWordParser implements IWordParser {
         while(allThing.hasNext()) { allDocThing.add((IBodyElement) allThing.next()); }
 
 
+        String reportDate = null;
         int currentChapter = 0;
         for (int iBE = 0, iCount = allDocThing.size(); iBE < iCount; iBE ++) {
             IBodyElement bodyEle = allDocThing.get(iBE);
+            if (bodyEle instanceof XWPFParagraph && ((XWPFParagraph) bodyEle).getText().trim().startsWith("报告日期：")) {
+                reportDate = ((XWPFParagraph) bodyEle).getText().trim().substring(((XWPFParagraph) bodyEle).getText().trim().indexOf("报告日期：")+5).trim();
+                result.put("reportDate", reportDate);
+            }
             currentChapter = chapterIndex(bodyEle);
             if (isChapter(currentChapter)) {
                 if (currentChapter==USER_INFO) {
@@ -174,8 +182,9 @@ public class TenGeneWordParser implements IWordParser {
         if (null==allDocThing || null==result) { return currentIndex; }
 
 
-        String      name        = null;
-        String      sampleNumb  = null;
+        String      name            = null;
+        String      sampleNumb      = null;
+        String      geneCheckDate   = null;
 
         XWPFTable table          = null;
         XWPFTableRow row         = null;
@@ -211,6 +220,9 @@ public class TenGeneWordParser implements IWordParser {
                     if (colContent.getText().contains("样本编号")) {
                         sampleNumb =  cols.get(iC+1).getText();
                     }
+                    if (colContent.getText().contains("接收日期")) {
+                        geneCheckDate = cols.get(iC+1).getText();
+                    }
 
                     String              strPara     = "";
                     List<XWPFParagraph> cellContent = colContent.getParagraphs();
@@ -227,8 +239,9 @@ public class TenGeneWordParser implements IWordParser {
             partTableC.append("</rows>\n</table>");
         }
         result.put("userReportInfo", partTableC.toString());
-        result.put("name",           name);
-        result.put("sampleNumb",     sampleNumb);
+        result.put("name",           (null!=name && "".equals(name.trim())) ? "　" : name);
+        result.put("sampleNumb",     (null!=sampleNumb && "".equals(sampleNumb.trim())) ? "　" : sampleNumb);
+        result.put("geneCheckDate",     (null!=geneCheckDate && "".equals(geneCheckDate.trim())) ? "　" : geneCheckDate);
         return currentIndex;
     }
 
@@ -406,15 +419,15 @@ public class TenGeneWordParser implements IWordParser {
                 partTableC.append("</rows>\n</table>");
             }
         }
-        result.put("checkResultPart1", part1C.toString());
+        result.put("checkResultPart1", "".equals(part1C.toString().trim()) ? "　" : part1C.toString());
         part1C.setLength(0);
 
         result.put("checkResultPartTable", partTableC.toString());
 
-        result.put("checkResultPart2", part2C.toString());
+        result.put("checkResultPart2", "".equals(part2C.toString().trim()) ? "　" : part2C.toString());
         part2C.setLength(0);
 
-        result.put("checkResultPart3", part3C.toString());
+        result.put("checkResultPart3", "".equals(part3C.toString().trim()) ? "　" : part3C.toString());
         part3C.setLength(0);
 
         return currentIndex;
@@ -584,6 +597,8 @@ public class TenGeneWordParser implements IWordParser {
 
         XWPFParagraph       paragraph   = null;
         StringBuilder       part1C      = new StringBuilder();
+        StringBuilder       part2C      = new StringBuilder();
+        StringBuilder       partTableC2 = new StringBuilder();
 
         XWPFTable           table       = null;
         XWPFTableRow        row         = null;
@@ -606,10 +621,10 @@ public class TenGeneWordParser implements IWordParser {
 
                 if (paragraph.getText().contains("本次检测的基因简介如下")) {
                     String style = defaultParagraphProcessor.parseParagraph(paragraph, null, "font_size='12'", null, "font='fzltchjw'", "italic='true'", "<br/>", "");
-                    part1C.append(style).append("<br/>");
+                    part2C.append(style).append("<br/>");
                 }
                 else {
-                    String style = defaultParagraphProcessor.parseParagraph(paragraph, null, null, "font_color='#607b3f'", "font='fzltchjw'", "italic='true'", "<br/>", "<br/>");
+                    String style = defaultParagraphProcessor.parseParagraph(paragraph, null, null, "font_color='#607b3f'", "font='fzltchjw'", "italic='true'", "<br/>", "");
                     part1C.append(style);
                 }
             }
@@ -617,39 +632,127 @@ public class TenGeneWordParser implements IWordParser {
                 table = (XWPFTable) bodyEle;
                 int rowSize = table.getNumberOfRows();
 
-                for (int iR = 0; iR < rowSize; iR++) {
-                    row = table.getRow(iR);
-                    cols = row.getTableCells();
+                row = table.getRow(0);
+                if (row.getTableCells().size()>2) {
+                    partTableC2.append("<table id='checkResultPartDrugTable'>\n<headers>\n");
+                    for (int iR = 0; iR < rowSize; iR++) {
+                        row = table.getRow(iR);
+                        if (1==iR) {
+                            partTableC2.append("</headers>\n<rows>\n");
+                        }
+                        cols = row.getTableCells();
+                        for (int iC = 0, iColSize = null == cols ? 0 : cols.size(); iC < iColSize; iC++) {
+                            colContent = cols.get(iC);
+                            if (null == colContent || null == colContent.getText()) { continue; }
 
+                            if (0 == iR) {
+                                partTableC2.append("<header")
+                                        .append("  column='").append(iC)
+                                        .append("' value=''><![CDATA[").append(colContent.getText())
+                                        .append("]]></header>\n");
+                            }
+                            else {
+                                String              strPara     = "";
+                                List<XWPFParagraph> cellContent = colContent.getParagraphs();
+                                for (int iPara = 0, cPara = cellContent.size(); iPara < cPara; iPara ++) {
+                                    strPara += (new ParagraphProcessor10GeneNCCN()).parseParagraph(cellContent.get(iPara), null, null, null, null, null, "", "");
+                                }
+                                partTableC2.append("<cell")
+                                        .append("  row='").append(iR)
+                                        .append("' column='").append(iC)
+                                        .append("' value=''><![CDATA[").append(strPara)
+                                        .append("]]></cell>\n");
+                            }
 
-                    colContent      = cols.get(0); // 基因检测title
-                    String strPara  = "";
-                    List<XWPFParagraph> cellContent = colContent.getParagraphs();
-                    for (int iPara = 0, cPara = cellContent.size(); iPara < cPara; iPara ++) {
-                        XWPFParagraph cellSubPara = cellContent.get(iPara);
-                        if ("".equals(cellSubPara.getText().trim())) { continue; }
-                        String tmp = defaultParagraphProcessor.parseParagraph(cellContent.get(iPara), null, "font_size='10'", "font_color='#607b3f'", "bold='true'", "italic='true'", "", "");
-                        strPara += tmp;
+                        }
                     }
-                    part1C.append(strPara).append("<br/>");
-
-
-                    colContent  = cols.get(1); // 基因检测简介
-                    strPara     = "";
-                    cellContent = colContent.getParagraphs();
-                    for (int iPara = 0, cPara = cellContent.size(); iPara < cPara; iPara ++) {
-                        XWPFParagraph cellSubPara = cellContent.get(iPara);
-                        if ("".equals(cellSubPara.getText().trim())) { continue; }
-                        String tmp = defaultParagraphProcessor.parseParagraph(cellSubPara, null, null, "font_color='#607b3f'", "bold='true'", "italic='true'", "<br/>", "<br/>");
-                        strPara += tmp;
-                    }
-                    part1C.append(strPara).append("<br/>");
+                    partTableC2.append("</rows>\n</table>");
+                    continue;
                 }
-                break;
+                else {
+                    for (int iR = 0; iR < rowSize; iR++) {
+                        row = table.getRow(iR);
+                        cols = row.getTableCells();
+
+
+                        colContent = cols.get(0); // 基因检测title
+                        String strPara = "";
+                        List<XWPFParagraph> cellContent = colContent.getParagraphs();
+                        for (int iPara = 0, cPara = cellContent.size(); iPara < cPara; iPara++) {
+                            XWPFParagraph cellSubPara = cellContent.get(iPara);
+                            if ("".equals(cellSubPara.getText().trim())) {
+                                continue;
+                            }
+                            String tmp = defaultParagraphProcessor.parseParagraph(cellContent.get(iPara), null, "font_size='10'", "font_color='#607b3f'", "bold='true'", "italic='true'", "", "");
+                            strPara += tmp;
+                        }
+                        part2C.append(strPara).append("<br/>");
+
+
+                        colContent = cols.get(1); // 基因检测简介
+                        strPara = "";
+                        cellContent = colContent.getParagraphs();
+                        for (int iPara = 0, cPara = cellContent.size(); iPara < cPara; iPara++) {
+                            XWPFParagraph cellSubPara = cellContent.get(iPara);
+                            if ("".equals(cellSubPara.getText().trim())) { continue;}
+                            String tmp = defaultParagraphProcessor.parseParagraph(cellSubPara, null, null, "font_color='#607b3f'", "bold='true'", "italic='true'", "<br/>", "<br/>");
+                            strPara += tmp;
+                        }
+                        part2C.append(strPara).append("<br/>");
+                    }
+                    break;
+                }
             }
         }
-        result.put("geneCancerSummary", part1C.toString());
+
+        // parse sign
+        for (int iBE = currentIndex+1, iCount = allDocThing.size(); iBE < iCount; iBE ++) {
+            // record the scanned index
+            currentIndex = iBE;
+
+            IBodyElement bodyEle = allDocThing.get(iBE);
+            if (isChapter(chapterIndex(bodyEle))) { break; }
+
+            if (!(bodyEle instanceof XWPFTable)) { continue; }
+
+            table = (XWPFTable) bodyEle;
+            int rowSize = table.getNumberOfRows();
+
+            for (int iR = 0; iR < rowSize; iR++) {
+                row = table.getRow(iR);
+                cols = row.getTableCells();
+
+                for (int iC = 0; iC < cols.size(); iC++) {
+                    colContent = cols.get(iC);
+                    if (colContent.getText().contains("检验者")) {
+                        colContent = cols.get(iC+1);
+                        //将图片写入本地文件
+                        String filePath = saveImage(colContent, "jianYanSign");
+                        result.put("jianYanSign", filePath);
+                    }
+                    if (colContent.getText().contains("核对者")) {
+                        colContent = cols.get(iC+1);
+                        //将图片写入本地文件
+                        String filePath = saveImage(colContent, "heDuiSign");
+                        result.put("heDuiSign", filePath);
+                    }
+                    if (colContent.getText().contains("审核者")) {
+                        colContent = cols.get(iC+1);
+                        //将图片写入本地文件
+                        String filePath = saveImage(colContent, "shenHeSign");
+                        result.put("shenHeSign", filePath);
+                    }
+                }
+            }
+        }
+        result.put("geneCancerSummary1", part1C.toString());
         part1C.setLength(0);
+
+        if (!"".equals(partTableC2.toString())) { part2C.insert(0, "<br/>"); }
+        result.put("geneCancerSummary2", part2C.toString());
+        part2C.setLength(0);
+
+        result.put("checkResultPartDrugTable", partTableC2.toString());
 
         return currentIndex;
     }
@@ -733,7 +836,7 @@ public class TenGeneWordParser implements IWordParser {
                 for (int iPara = 0, cPara = cellContent.size(); iPara < cPara; iPara ++) {
                     XWPFParagraph cellSubPara = cellContent.get(iPara);
                     if ("".equals(cellSubPara.getText().trim())) { continue; }
-                    String tmp = (new WordParagraphProcessor10GeneNCCN()).parseParagraph(cellContent.get(iPara), null, "font_size='10' char_spacing='1.1'", "font_color='#607b3f'", "bold='true'", "italic='true'", "", "<br/>");
+                    String tmp = (new ParagraphProcessor10GeneNCCN()).parseParagraph(cellContent.get(iPara), null, "font_size='10' char_spacing='1.1'", "font_color='#607b3f'", "bold='true'", "italic='true'", "", "<br/>");
                     strPara += tmp;
                 }
                 fdaNccnDesc.append(strPara).append("<br/>");
@@ -745,6 +848,7 @@ public class TenGeneWordParser implements IWordParser {
             for (;  currentR < rowSize; currentR++) {
                 row = table.getRow(currentR);
                 cols = row.getTableCells();
+                if (cols.size()<2) { continue; }
 
                 colContent      = cols.get(1);
                 String strPara  = "";
@@ -752,7 +856,7 @@ public class TenGeneWordParser implements IWordParser {
                 for (int iPara = 0, cPara = cellContent.size(); iPara < cPara; iPara ++) {
                     XWPFParagraph cellSubPara = cellContent.get(iPara);
                     if ("".equals(cellSubPara.getText().trim())) { continue; }
-                    String tmp = (new WordParagraphProcessor10GeneNCCN()).parseParagraph(cellContent.get(iPara), null, "font_size='10' char_spacing='1.1'", "font_color='#607b3f'", "bold='true'", "italic='true'", "", "<br/>");
+                    String tmp = (new ParagraphProcessor10GeneNCCN()).parseParagraph(cellContent.get(iPara), null, "font_size='10' char_spacing='1.1'", "font_color='#607b3f'", "bold='true'", "italic='true'", "", "<br/>");
                     strPara += tmp;
                 }
                 fdaNccnDesc.append(strPara).append("<br/>");
@@ -788,9 +892,12 @@ public class TenGeneWordParser implements IWordParser {
             paragraph = (XWPFParagraph) bodyEle;
             if (null == paragraph.getText()) { continue; }
 
-            part1C.append(index++).append(". ").append(paragraph.getText()).append("<br/>");
-
-
+            if (defaultParagraphProcessor.containChinese(paragraph.getText())) {
+                part1C.append(index++).append(". <style font='fzltxh_gbk'>").append(paragraph.getText()).append("</style><br/>");
+            }
+            else {
+                part1C.append(index++).append(". ").append(paragraph.getText()).append("<br/>");
+            }
         }
         result.put("appendixReferences", part1C.toString());
         part1C.setLength(0);
@@ -814,8 +921,16 @@ public class TenGeneWordParser implements IWordParser {
         Element     eleData                     = new DefaultElement("data");
         elePdf.add(eleData);
 
+        String key = null;
+
+        // report date and geneCheckDate
+        key = "reportDate";
+        addParameter(eleData, key, null==parameters.get(key) ? "　" : (String)parameters.get(key));
+        key = "geneCheckDate";
+        addParameter(eleData, key, reformatDate((String)parameters.get(key)));
+
         // user info
-        String key = "userReportInfo";
+        key = "userReportInfo";
         addTable(eleData, (String)parameters.get(key));
         key = "name";
         addParameter(eleData, key, (String)parameters.get(key));
@@ -842,19 +957,49 @@ public class TenGeneWordParser implements IWordParser {
 
         // target drug summary
         key = "targetDrugSummary";
-        addParameter(eleData, key, (String)parameters.get(key));
-        key = "targetDrug";
-        addTable(eleData, (String)parameters.get(key));
-        key = "targetDrugTitle";
-        addParameter(eleData, key, (String)parameters.get(key));
+        if (parameters.containsKey(key) && null!=parameters.get(key)) {
+            addParameter(eleData, key, (String) parameters.get(key));
+            key = "targetDrug";
+            addTable(eleData, (String) parameters.get(key));
+            key = "targetDrugTitle";
+            addParameter(eleData, key, (String) parameters.get(key));
+
+            addParameter(eleData, "isPositive",       "true");
+            addParameter(eleData, "fiveChapterName",  "五、靶向药物简述");
+            addParameter(eleData, "sixChapterName",   "六、具体检出位点");
+            addParameter(eleData, "sevenChapterName", "七、疾病与基因简介");
+        }
+        else {
+            addParameter(eleData, "isPositive",       "false");
+            addParameter(eleData, "fiveChapterName",  "");
+            addParameter(eleData, "sixChapterName",   "五、具体检出位点");
+            addParameter(eleData, "sevenChapterName", "六、疾病与基因简介");
+        }
 
         // detail gene site checked
         key = "geneSiteChecked";
         addTable(eleData, (String)parameters.get(key));
 
         // gene cancer summary
-        key = "geneCancerSummary";
+        key = "geneCancerSummary1";
         addParameter(eleData, key, (String)parameters.get(key));
+        key = "geneCancerSummary2";
+        addParameter(eleData, key, (String)parameters.get(key));
+        key = "checkResultPartDrugTable";
+        if (parameters.containsKey(key) && null!=parameters.get(key) && !"".equals(((String) parameters.get(key)).trim())) {
+            addParameter(eleData, "isCheckResultPartDrugVisible", "true");
+            addTable(eleData, (String) parameters.get(key));
+        }
+        else {
+            addParameter(eleData, "isCheckResultPartDrugVisible", "false");
+        }
+        key = "jianYanSign";
+        addParameter(eleData, key, null==parameters.get(key) ? "" : (String)parameters.get(key));
+        key = "heDuiSign";
+        addParameter(eleData, key, null==parameters.get(key) ? "" : (String)parameters.get(key));
+        key = "shenHeSign";
+        addParameter(eleData, key, null==parameters.get(key) ? "" : (String)parameters.get(key));
+
 
         // FDA NCCN
         key = "fdaNccnTable";
@@ -881,8 +1026,37 @@ public class TenGeneWordParser implements IWordParser {
         root.add(document.getRootElement());
     }
 
+    public String reformatDate(String date) {
+        DateUtil dateUtil = DateUtil.newInstance();
+        if (date.contains("/")) {
+            Date dDate = dateUtil.getTime(date, "MM/dd/yyyy");
+            if (null==dDate) { return "　"; }
+            return dateUtil.timeToString(dDate, "yyyy-MM-dd");
+        }
+        return date;
+    }
+
+    public String saveImage(XWPFTableCell cell, String picName) {
+        List<XWPFParagraph> cellContent = cell.getParagraphs();
+        XWPFPicture picture = cellContent.get(0).getRuns().get(0).getEmbeddedPictures().get(0);
+        //将图片写入本地文件
+        byte[] picbyte = picture.getPictureData().getData();
+        String filePath = getTemporaryPath()+picName;
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(filePath);
+            fos.write(picbyte);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+        finally {
+            if (null!=fos) {
+                try { fos.close(); } catch (IOException e) { e.printStackTrace(); }
+            }
+        }
+        return filePath;
+    }
     public static void main(String[] args) throws Exception {
-        TenGeneWordParser tenGeneWordParser = TenGeneWordParser.newInstance("/Users/zhaolisong/Downloads/10gene 组织阳性 sample.docx");
+        TenGeneWordParser tenGeneWordParser = TenGeneWordParser.newInstance("/Users/zhaolisong/Downloads/10gene 组织阳性 sample.docx", "/Users/zhaolisong/Downloads/");
         tenGeneWordParser.openDocument();
         Map<String, Object> result = tenGeneWordParser.parseDocument(null);
         tenGeneWordParser.closeDocument();

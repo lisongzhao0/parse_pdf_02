@@ -12,6 +12,9 @@ public interface IWordParser {
     String  getDocumentPath();
     void    setDocumentPath(String documentPath);
 
+    String  getTemporaryPath();
+    void    setTemporaryPath(String temporaryPath);
+
     void openDocument() throws Exception;
     int chapterIndex(IBodyElement bodyElement);
     Map<String, Object> parseDocument(Map<String, Object> result);

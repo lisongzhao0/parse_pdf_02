@@ -5,23 +5,33 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import test.office.word.IWordParagraphProcessor;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by zhaolisong on 01/08/2017.
  */
-public class WordParagraphProcessor10GeneNCCN implements IWordParagraphProcessor {
+public class DefaultParagraphProcessor implements IWordParagraphProcessor {
+
+    public boolean containChinese(String str) {
+        Pattern p = Pattern.compile("[\u4e00-\u9fa5]");
+        Matcher m = p.matcher(str);
+        if (m.find()) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public String parseParagraph(XWPFParagraph paragraph, String font, String fontSize, String color, String bold, String italic, String endReturn, String returnReplacement) {
         if (null==paragraph || null == paragraph.getText()) { return ""; }
 
         List<XWPFRun>       runs        = null;
         XWPFRun             run         = null;
-        XWPFRun             preRun      = null;
         StringBuilder       part2C      = new StringBuilder();
 
         runs = paragraph.getRuns();
         for (int i = 0, count = null == runs ? 0 : runs.size(); i < count; i++) {
-            preRun = run;
             run = runs.get(i);
 
             String style = null;
@@ -56,9 +66,7 @@ public class WordParagraphProcessor10GeneNCCN implements IWordParagraphProcessor
                     style = run.text();
                 }
             }
-            if (null!=preRun && null!=run && (preRun.isBold() || preRun.isItalic()) && (!run.isBold() && !run.isItalic())) {
-                part2C.append("<br/>");
-            }
+
             if (style == null) { continue; }
             style = style.replaceAll("[\\n]", returnReplacement);
             part2C.append(style);

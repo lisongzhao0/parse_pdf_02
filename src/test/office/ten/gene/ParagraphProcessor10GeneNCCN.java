@@ -2,25 +2,25 @@ package test.office.ten.gene;
 
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
-import test.office.word.IWordParagraphProcessor;
 
 import java.util.List;
 
 /**
  * Created by zhaolisong on 01/08/2017.
  */
-public class DefaultWordParagraphProcessor implements IWordParagraphProcessor {
-
+public class ParagraphProcessor10GeneNCCN extends DefaultParagraphProcessor {
     @Override
     public String parseParagraph(XWPFParagraph paragraph, String font, String fontSize, String color, String bold, String italic, String endReturn, String returnReplacement) {
         if (null==paragraph || null == paragraph.getText()) { return ""; }
 
         List<XWPFRun>       runs        = null;
         XWPFRun             run         = null;
+        XWPFRun             preRun      = null;
         StringBuilder       part2C      = new StringBuilder();
 
         runs = paragraph.getRuns();
         for (int i = 0, count = null == runs ? 0 : runs.size(); i < count; i++) {
+            preRun = run;
             run = runs.get(i);
 
             String style = null;
@@ -55,7 +55,9 @@ public class DefaultWordParagraphProcessor implements IWordParagraphProcessor {
                     style = run.text();
                 }
             }
-
+            if (null!=preRun && null!=run && (preRun.isBold() || preRun.isItalic()) && (!run.isBold() && !run.isItalic())) {
+                part2C.append("<br/>");
+            }
             if (style == null) { continue; }
             style = style.replaceAll("[\\n]", returnReplacement);
             part2C.append(style);

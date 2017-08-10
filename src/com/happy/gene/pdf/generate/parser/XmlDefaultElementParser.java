@@ -181,9 +181,13 @@ public class XmlDefaultElementParser extends AbstractElementParser {
             String opacity   = ((Element) args[0]).attributeValue("opacity");
             String lineWidth = ((Element) args[0]).attributeValue("line-width");
             String visible   = ((Element) args[0]).attributeValue("visible");
+            String dashOn    = ((Element) args[0]).attributeValue("dash-on");
+            String dashOff   = ((Element) args[0]).attributeValue("dash-off");
 
             Float fOpacity   = numberUtil.isFloat(opacity)  ? numberUtil.parseFloat(opacity)  : 1.0f;
             Float fLineWidth = numberUtil.isFloat(lineWidth)? numberUtil.parseFloat(lineWidth): 0.0f;
+            Float lDashOn  = numberUtil.isFloat(dashOn)  ? numberUtil.parseFloat(dashOn) : null;
+            Float lDashOff = numberUtil.isFloat(dashOff) ? numberUtil.parseFloat(dashOff): null;
 
             StyleOption styleOption = StyleOption.newInstance();
             styleOption.foreground(foreground);
@@ -192,6 +196,8 @@ public class XmlDefaultElementParser extends AbstractElementParser {
             styleOption.opacity(fOpacity);
             styleOption.lineWidth(fLineWidth);
             styleOption.visible(visible);
+            styleOption.dashOn(lDashOn);
+            styleOption.dashOff(lDashOff);
 
             return styleOption;
         }
@@ -259,13 +265,7 @@ public class XmlDefaultElementParser extends AbstractElementParser {
                 return area;
             }
             else if ("circle".equalsIgnoreCase(eleName)) {
-                String dashOn  = element.attributeValue("dash-on");
-                String dashOff = element.attributeValue("dash-off");
-
-                Float lDashOn  = numberUtil.isFloat(dashOn)  ? numberUtil.parseFloat(dashOn) : null;
-                Float lDashOff = numberUtil.isFloat(dashOff) ? numberUtil.parseFloat(dashOff): null;
-
-                CircleModel circle = CircleModel.newInstance(lDashOn, lDashOff);
+                CircleModel circle = CircleModel.newInstance();
                 setModelAttributes(circle, args);
                 return circle;
             }
@@ -300,7 +300,7 @@ public class XmlDefaultElementParser extends AbstractElementParser {
                 setModelAttributes(image, args);
                 return image;
             }
-            else if ("page".equalsIgnoreCase(eleName)) {
+            else if ("chapter".equalsIgnoreCase(eleName)) {
                 ChapterModel page = ChapterModel.newInstance();
                 setModelAttributes(page, args);
 

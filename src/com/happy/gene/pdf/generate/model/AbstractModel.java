@@ -40,8 +40,26 @@ public abstract class AbstractModel implements ICloneable, IIndex, IGridCell {
     public Position position() { return position; }
     public StyleOption style() { return style; }
     public PageOption pageOption() { return pageOption; }
-    public float[] outterBoundary() {
-        float[] innerBoundary = innerBoundary();
+    /**
+     * the outter size of an area.
+     *
+     *  -----------------------------------
+     *  |          margin-top             |
+     *  |        -----------------        |
+     * h|margin- |  inner-bound  | margin-|
+     *  |  left  | (has content) |  right |
+     *  |        -----------------        |
+     *  |         margin-bottom           |
+     *(x,y)-------------w------------------
+     *
+     * The origin point PDF ^
+     * is at the            |
+     * left-bottom corner   |
+     *                    (0,0)---->
+     * @return [originX, originY, width, height, ]
+     */
+    public float[] outterBoundaryPdf() {
+        float[] innerBoundary = innerBoundaryPdf();
         if (null==innerBoundary) {
             return null;
         }
@@ -51,7 +69,23 @@ public abstract class AbstractModel implements ICloneable, IIndex, IGridCell {
         innerBoundary[3] = innerBoundary[3]+margin.top() + margin.bottom();
         return innerBoundary;
     }
-    public float[] innerBoundary() {
+    /**
+     *  ------------------------------
+     *  |                            |
+     *  |                            |
+     * h|                            |
+     *  |                            |
+     *  |                            |
+     *(x,y)----------w----------------
+     *
+     * The origin point PDF ^
+     * is at the            |
+     * left-bottom corner   |
+     *                    (0,0)---->
+     *
+     * the class defines the Position to show content in PDF
+     */
+    public float[] innerBoundaryPdf() {
         if (null==position || null==dimension) {
             return null;
         }
@@ -65,14 +99,14 @@ public abstract class AbstractModel implements ICloneable, IIndex, IGridCell {
     /**
      * the outter size of an area.
      *
-     *-----------------------------------
-     *|          margin-top             |
-     *|        -----------------        |
-     *|margin- |  inner-bound  | margin-|
-     *|  left  | (has content) |  right |
-     *|        -----------------        |
-     *|         margin-bottom           |
-     *-----------------------------------
+     *(x,y)--------------w-----------------
+     *  |          margin-top             |
+     *  |        -----------------        |
+     * h|margin- |  inner-bound  | margin-|
+     *  |  left  | (has content) |  right |
+     *  |        -----------------        |
+     *  |         margin-bottom           |
+     *  -----------------------------------
      *
      * The origin 2D    (0,0)---->
      * point is at the    |
@@ -92,6 +126,14 @@ public abstract class AbstractModel implements ICloneable, IIndex, IGridCell {
         return innerBoundary2D;
     }
     /**
+     *(x,y)-----------w---------------
+     *  |                            |
+     *  |                            |
+     * h|                            |
+     *  |                            |
+     *  |                            |
+     *  ------------------------------
+     *
      * The origin 2D    (0,0)---->
      * point is at the    |
      * left-top corner    |
