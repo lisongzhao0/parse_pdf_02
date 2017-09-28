@@ -26,9 +26,9 @@ public class Position implements ICloneable {
 
     public Position() {}
     public Position(float x, float y) {
-        this.x = x; this.y = y;
+        this(x, y, null, null);
     }
-    public Position(float x, float y, float topY, float bottomY) {
+    public Position(float x, float y, Float topY, Float bottomY) {
         this.x = x; this.y = y; this.topY = topY; this.bottomY = bottomY;
     }
 
@@ -46,7 +46,6 @@ public class Position implements ICloneable {
     }
     public Position topY(Float topY) { this.topY = topY; return this; }
     public Position bottomY(Float bottomY) {this.bottomY = bottomY; return this; }
-
     //====================================
     // ICloneable
     //====================================
@@ -56,7 +55,7 @@ public class Position implements ICloneable {
 
         ((Position) dest).x = x;
         ((Position) dest).y = y;
-        ((Position) dest).topY = topY;
+        ((Position) dest).topY    = topY;
         ((Position) dest).bottomY = bottomY;
 
         return (ICloneable) dest;
