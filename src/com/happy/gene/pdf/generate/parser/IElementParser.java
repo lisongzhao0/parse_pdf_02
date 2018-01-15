@@ -14,8 +14,9 @@ public interface IElementParser {
 
     Alignment attributeAlignment(Object ... args);
     Dimension attributeDimension(Object ... args);
-    FontStyleOption attributeFontStyle(Object ... args);
+    FontOption attributeFontStyle(Object ... args);
     Margin attributeMargin(Object ... args);
+    Padding attributePadding(Object ... args);
     Position attributePosition(Object ... args);
     StyleOption attributeStyle(Object ... args);
     PageOption attributePageOption(Object ... args);

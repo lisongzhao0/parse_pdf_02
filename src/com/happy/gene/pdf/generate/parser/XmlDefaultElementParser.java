@@ -21,11 +21,14 @@ public class XmlDefaultElementParser extends AbstractElementParser {
     private XmlDefaultElementParser() {}
 
     @Override
-    public int attributeIndex(Object... args) {
+    public int attributeIndex(Object... args)
+    {
         if (null==args || args.length==0) { return -1; }
-        if (args[0] instanceof Element) {
+        if (args[0] instanceof Element)
+        {
             String index = ((Element) args[0]).attributeValue("index");
-            if (numberUtil.isInteger(index)) {
+            if (numberUtil.isInteger(index))
+            {
                 return numberUtil.parseInteger(index);
             }
         }
@@ -33,18 +36,22 @@ public class XmlDefaultElementParser extends AbstractElementParser {
     }
 
     @Override
-    public String attributeName(Object... args) {
+    public String attributeName(Object... args)
+    {
         if (null==args || args.length==0) { return null; }
-        if (args[0] instanceof Element) {
+        if (args[0] instanceof Element)
+        {
             return ((Element) args[0]).attributeValue("name");
         }
         return null;
     }
 
     @Override
-    public GridOption attributeGridOption(Object... args) {
+    public GridOption attributeGridOption(Object... args)
+    {
         if (null==args || args.length==0) { return null; }
-        if (args[0] instanceof Element) {
+        if (args[0] instanceof Element)
+        {
             String row     = ((Element) args[0]).attributeValue("row");
             String col     = ((Element) args[0]).attributeValue("col");
             String rowspan = ((Element) args[0]).attributeValue("rowspan");
@@ -61,9 +68,11 @@ public class XmlDefaultElementParser extends AbstractElementParser {
     }
 
     @Override
-    public Alignment attributeAlignment(Object... args) {
+    public Alignment attributeAlignment(Object... args)
+    {
         if (null==args || args.length==0) { return null; }
-        if (args[0] instanceof Element) {
+        if (args[0] instanceof Element)
+        {
             String hAlign = ((Element) args[0]).attributeValue("h_align");
             String vAlign = ((Element) args[0]).attributeValue("v_align");
 
@@ -73,9 +82,11 @@ public class XmlDefaultElementParser extends AbstractElementParser {
     }
 
     @Override
-    public Dimension attributeDimension(Object... args) {
+    public Dimension attributeDimension(Object... args)
+    {
         if (null==args || args.length==0) { return null; }
-        if (args[0] instanceof Element) {
+        if (args[0] instanceof Element)
+        {
             String width  = ((Element) args[0]).attributeValue("width");
             String height = ((Element) args[0]).attributeValue("height");
             String radius = ((Element) args[0]).attributeValue("radius");
@@ -90,9 +101,11 @@ public class XmlDefaultElementParser extends AbstractElementParser {
     }
 
     @Override
-    public FontStyleOption attributeFontStyle(Object... args) {
+    public FontOption attributeFontStyle(Object... args)
+    {
         if (null==args || args.length==0) { return null; }
-        if (args[0] instanceof Element) {
+        if (args[0] instanceof Element)
+        {
             String name         = ((Element) args[0]).attributeValue("font");
             String size         = ((Element) args[0]).attributeValue("font-size");
             String lineLeading  = ((Element) args[0]).attributeValue("font-height");
@@ -103,7 +116,7 @@ public class XmlDefaultElementParser extends AbstractElementParser {
             boldItalicUnderline = stringUtil.isEmpty(boldItalicUnderline) ? "" : boldItalicUnderline.trim().toLowerCase();
 
 
-            FontStyleOption fontStyle = FontStyleOption.newInstance();
+            FontOption fontStyle = FontOption.newInstance();
             fontStyle.fontName(name)
                     .fontSize(numberUtil.isFloat(size) ? numberUtil.parseFloat(size) : fontStyle.fontSize())
                     .textRise(numberUtil.isFloat(textRise) ? numberUtil.parseFloat(textRise) : fontStyle.textRise())
@@ -121,14 +134,20 @@ public class XmlDefaultElementParser extends AbstractElementParser {
     }
 
     @Override
-    public Margin attributeMargin(Object... args) {
+    public Margin attributeMargin(Object... args)
+    {
         if (null==args || args.length==0) { return null; }
-        if (args[0] instanceof Element) {
+        if (args[0] instanceof Element)
+        {
             String left   = ((Element) args[0]).attributeValue("margin-left");
             String top    = ((Element) args[0]).attributeValue("margin-top");
             String right  = ((Element) args[0]).attributeValue("margin-right");
             String bottom = ((Element) args[0]).attributeValue("margin-bottom");
             String margin = ((Element) args[0]).attributeValue("margin-trbl");
+            if (stringUtil.isEmpty(margin))
+            {
+                margin = ((Element) args[0]).attributeValue("margin");
+            }
 
             Float fLeft   = numberUtil.isFloat(left)  ? numberUtil.parseFloat(left)  : 0f;
             Float fTop    = numberUtil.isFloat(top)   ? numberUtil.parseFloat(top)   : 0f;
@@ -142,6 +161,36 @@ public class XmlDefaultElementParser extends AbstractElementParser {
             }
 
             return eMargin;
+        }
+        return null;
+    }
+
+    @Override
+    public Padding attributePadding(Object... args)
+    {
+        if (null==args || args.length==0) { return null; }
+        if (args[0] instanceof Element)
+        {
+            String left   = ((Element) args[0]).attributeValue("padding-left");
+            String top    = ((Element) args[0]).attributeValue("padding-top");
+            String right  = ((Element) args[0]).attributeValue("padding-right");
+            String bottom = ((Element) args[0]).attributeValue("padding-bottom");
+            String padding= ((Element) args[0]).attributeValue("padding-trbl");
+            if (stringUtil.isEmpty(padding))
+            {
+                padding = ((Element) args[0]).attributeValue("padding");
+            }
+
+            Float fLeft   = numberUtil.isFloat(left)  ? numberUtil.parseFloat(left)  : 0f;
+            Float fTop    = numberUtil.isFloat(top)   ? numberUtil.parseFloat(top)   : 0f;
+            Float fRight  = numberUtil.isFloat(right) ? numberUtil.parseFloat(right) : 0f;
+            Float fBottom = numberUtil.isFloat(bottom)? numberUtil.parseFloat(bottom): 0f;
+
+            Padding ePadding = Padding.newInstance();
+            if (!stringUtil.isEmpty(padding)) { ePadding.TRBL(padding); }
+            else { ePadding.padding(fTop, fRight, fBottom, fLeft); }
+
+            return ePadding;
         }
         return null;
     }

@@ -5,10 +5,12 @@ import com.happy.gene.pdf.generate.ICloneable;
 /**
  * Created by zhaolisong on 21/07/2017.
  */
-public class PageOption implements ICloneable {
+public class PageOption implements ICloneable
+{
 
     public static PageOption newInstance() { return new PageOption(); }
-    public static PageOption newInstance(String inWhichCatalog, boolean generateNewPage, boolean startCountPage, Integer startCountPageAt, Integer fixPageAt, Boolean repaintAfterAllPaint) {
+    public static PageOption newInstance(String inWhichCatalog, boolean generateNewPage, boolean startCountPage, Integer startCountPageAt, Integer fixPageAt, Boolean repaintAfterAllPaint)
+    {
         return new PageOption(inWhichCatalog, generateNewPage, startCountPage, startCountPageAt, fixPageAt, repaintAfterAllPaint);
     }
 
@@ -28,7 +30,8 @@ public class PageOption implements ICloneable {
     public PageOption() {}
     public PageOption(String inWhichCatalog,  Boolean generateNewPage,
                       Boolean startCountPage, Integer startCountPageAt,
-                      Integer fixPageAt, Boolean repaintAfterAllPaint) {
+                      Integer fixPageAt, Boolean repaintAfterAllPaint)
+    {
         this.inWhichCatalog       = inWhichCatalog;
         this.generateNewPage      = generateNewPage;
         this.startCountPage       = startCountPage;
@@ -71,8 +74,9 @@ public class PageOption implements ICloneable {
     //====================================
     // ICloneable
     //====================================
-    @Override public ICloneable createBlank() { return new PageOption(); }
-    @Override public ICloneable clone(Object dest) {
+    @Override
+    public ICloneable clone(Object dest)
+    {
         if (!(dest instanceof PageOption)) { return null; }
 
         ((PageOption) dest).inWhichCatalog       = inWhichCatalog;
@@ -84,4 +88,7 @@ public class PageOption implements ICloneable {
 
         return (ICloneable) dest;
     }
+
+    @Override
+    public ICloneable createBlank() { return new PageOption(); }
 }

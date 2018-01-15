@@ -5,7 +5,8 @@ import com.happy.gene.pdf.generate.ICloneable;
 /**
  * Created by zhaolisong on 21/07/2017.
  */
-public class Dimension implements ICloneable {
+public class Dimension implements ICloneable
+{
 
     public static final Float H_UNDEFINE = Float.MAX_VALUE;
 
@@ -17,14 +18,17 @@ public class Dimension implements ICloneable {
     private Float r = 0.0f;
 
     public Dimension() {}
-    public Dimension(float width, float height, float radius) {
-        this.w = width; this.h = height; this.r = radius;
+    public Dimension(float width, float height, float radius)
+    {
+        this.w = width;
+        this.h = height;
+        this.r = radius;
     }
 
     public Float W() { return w; }
     public Float H() { return h; }
     public Float R() { return r; }
-    public boolean isHeigtUndefine() { return Float.MAX_VALUE==h; }
+    public boolean isHeigtUndefine() { return null==h || H_UNDEFINE==h; }
 
     public Dimension W(Float width)  { this.w = width;  return this; }
     public Dimension H(Float height) { this.h = height; return this; }
@@ -34,7 +38,8 @@ public class Dimension implements ICloneable {
     // ICloneable
     //====================================
     @Override
-    public ICloneable clone(Object dest) {
+    public ICloneable clone(Object dest)
+    {
         if (!(dest instanceof Dimension)) { return null; }
 
         ((Dimension) dest).w = w;
@@ -43,9 +48,8 @@ public class Dimension implements ICloneable {
 
         return (ICloneable) dest;
     }
+
     @Override
-    public ICloneable createBlank() {
-        return new Dimension();
-    }
+    public ICloneable createBlank() { return new Dimension(); }
 
 }

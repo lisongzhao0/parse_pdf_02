@@ -13,7 +13,8 @@ import com.happy.gene.pdf.generate.ICloneable;
  *
  * Created by zhaolisong on 21/07/2017.
  */
-public class Position implements ICloneable {
+public class Position implements ICloneable
+{
 
     public static Position newInstance() { return new Position(); }
     public static Position newInstance(float x, float y) { return new Position(x, y); }
@@ -25,12 +26,8 @@ public class Position implements ICloneable {
     private Float bottomY = null;
 
     public Position() {}
-    public Position(float x, float y) {
-        this(x, y, null, null);
-    }
-    public Position(float x, float y, Float topY, Float bottomY) {
-        this.x = x; this.y = y; this.topY = topY; this.bottomY = bottomY;
-    }
+    public Position(float x, float y) { this(x, y, null, null); }
+    public Position(float x, float y, Float topY, Float bottomY) { this.x = x; this.y = y; this.topY = topY; this.bottomY = bottomY; }
 
     public float X() { return x; }
     public float Y() { return y; }
@@ -38,7 +35,8 @@ public class Position implements ICloneable {
     public Float bottomY() { return bottomY; }
 
     public Position X(float x) { this.x = x; return this; }
-    public Position Y(float y) {
+    public Position Y(float y)
+    {
         this.y = y;
         if (null!=topY    && y > topY   ) { this.y = topY;    }
         if (null!=bottomY && y < bottomY) { this.y = bottomY; }
@@ -50,7 +48,8 @@ public class Position implements ICloneable {
     // ICloneable
     //====================================
     @Override
-    public ICloneable clone(Object dest) {
+    public ICloneable clone(Object dest)
+    {
         if (!(dest instanceof Position)) { return null; }
 
         ((Position) dest).x = x;
@@ -60,8 +59,7 @@ public class Position implements ICloneable {
 
         return (ICloneable) dest;
     }
+
     @Override
-    public ICloneable createBlank() {
-        return new Position();
-    }
+    public ICloneable createBlank() { return new Position(); }
 }

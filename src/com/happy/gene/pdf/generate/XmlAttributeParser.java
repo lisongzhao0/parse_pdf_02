@@ -42,8 +42,8 @@ public class XmlAttributeParser {
         return dimension;
     }
 
-    public FontStyleOption getFontStyle(Element ele) {
-        FontStyleOption fontStyle = FontStyleOption.newInstance();
+    public FontOption getFontStyle(Element ele) {
+        FontOption fontStyle = FontOption.newInstance();
         if (null==ele) { return fontStyle; }
 
         String fontName    = ele.attributeValue("font");

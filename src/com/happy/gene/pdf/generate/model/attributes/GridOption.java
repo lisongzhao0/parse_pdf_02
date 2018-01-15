@@ -6,7 +6,9 @@ import com.happy.gene.pdf.generate.IGridCell;
 /**
  * Created by zhaolisong on 26/07/2017.
  */
-public class GridOption implements ICloneable, IGridCell {
+public class GridOption implements ICloneable, IGridCell
+{
+
     public static final int DEFAULT_ROW = 0;
     public static final int DEFAULT_COL = 0;
     public static final int DEFAULT_ROWSPAN = 1;
@@ -34,12 +36,16 @@ public class GridOption implements ICloneable, IGridCell {
     public GridOption col(Integer col) { this.col = null==col ? 0 : (col<0 ? 0 : col); return this; }
     public GridOption rowspan(Integer rowspan) { this.rowspan = null==rowspan ? 1 : (rowspan<1 ? 1 : rowspan); return this; }
     public GridOption colspan(Integer colspan) { this.colspan = null==colspan ? 1 : (colspan<1 ? 1 : colspan); return this; }
-    public GridOption grid(Integer row, Integer col) { row(row); col(col); return this; }
+    public GridOption grid(Integer row, Integer col) { grid(row, col, DEFAULT_ROWSPAN, DEFAULT_COLSPAN); return this; }
     public GridOption grid(Integer row, Integer col, Integer rowspan, Integer colspan) { row(row); col(col); rowspan(rowspan); colspan(colspan); return this; }
 
 
-    @Override public ICloneable createBlank() { return new GridOption(); }
-    @Override public ICloneable clone(Object dest) {
+    //====================================
+    // ICloneable
+    //====================================
+    @Override
+    public ICloneable clone(Object dest)
+    {
         if (!(dest instanceof GridOption)) { return null; }
 
         ((GridOption) dest).row     = row;
@@ -49,5 +55,8 @@ public class GridOption implements ICloneable, IGridCell {
 
         return (ICloneable) dest;
     }
+
+    @Override
+    public ICloneable createBlank() { return new GridOption(); }
 
 }
